@@ -13,6 +13,19 @@ services:
     deploy:
       restart_policy:
         condition: on-failure
+
+  kong-migrations-up:
+    image: kong:latest
+    command: kong migrations up && kong migrations finish
+    depends_on:
+      - postgres
+    env_file: .env
+    networks: 
+      - kong-network
+    restart: on-failure
+    deploy:
+      restart_policy:
+        condition: on-failure
         
   postgres:
     restart: always
