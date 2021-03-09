@@ -1,0 +1,68 @@
+version : '3'
+
+services:
+  kong-migrations:
+    image: kong:latest
+    command: kong migrations bootstrap
+    depends_on:
+      - postgres
+    env_file: .env
+    networks: 
+      - kong-network
+    restart: on-failure
+    deploy:
+      restart_policy:
+        condition: on-failure
+
+  kong-migrations-up:
+    image: kong:latest
+    command: kong migrations up && kong migrations finish
+    depends_on:
+      - postgres
+    env_file: .env
+    networks: 
+      - kong-network
+    restart: on-failure
+    deploy:
+      restart_policy:
+        condition: on-failure
+  kong:
+    image: kong:latest
+    depends_on:
+      - postgres
+      - kong-migrations-up
+    env_file: .env
+    networks: 
+      - kong-network
+    ports:
+      - "8000:8000/tcp"
+      - "127.0.0.1:8001:8001/tcp"
+      - "8443:8443/tcp"
+      - "127.0.0.1:8444:8444/tcp"
+    healthcheck:
+      test: ["CMD", "kong", "health"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+    restart: on-failure
+    deploy:
+      restart_policy:
+        condition: on-failure
+        
+  postgres:
+    restart: always
+    image: postgres:latest
+    ports:
+      - "5432"
+    env_file: .env
+    networks: 
+      - kong-network
+    volumes:
+      - pgdata:/var/lib/postgresql/data/
+
+volumes:
+  pgdata:
+
+networks:
+  kong-network:
+    driver: bridge
