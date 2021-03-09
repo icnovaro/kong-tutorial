@@ -1,6 +1,18 @@
 version : '3'
 
 services:
+
+  api:
+    restart: always
+    build: ./api
+    environment:
+    - NODE=1
+    networks: 
+      - kong-network
+    ports:
+      - "80"
+
+
   kong-migrations:
     image: kong:latest
     command: kong migrations bootstrap
@@ -53,7 +65,7 @@ services:
     restart: always
     image: postgres:latest
     ports:
-      - "5432"
+      - "5432:5432"
     env_file: .env
     networks: 
       - kong-network
