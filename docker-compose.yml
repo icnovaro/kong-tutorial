@@ -1,7 +1,19 @@
 version : '3'
 
 services:
-
+  kong-migrations:
+    image: kong:latest
+    command: kong migrations bootstrap
+    depends_on:
+      - postgres
+    env_file: .env
+    networks: 
+      - kong-network
+    restart: on-failure
+    deploy:
+      restart_policy:
+        condition: on-failure
+        
   postgres:
     restart: always
     image: postgres:latest
